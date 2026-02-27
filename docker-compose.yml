@@ -1,12 +1,10 @@
 version: '3.8'
 
 services:
-  # MongoDB база данных
+  # MongoDB (local container)
   mongodb:
     image: mongo:7
     container_name: alu-satu-mongodb
-    ports:
-      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password123
@@ -22,42 +20,37 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend сервер
+  # Backend (built from repo)
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
     container_name: alu-satu-backend
-    ports:
-      - "4000:4000"
     environment:
       NODE_ENV: production
       PORT: 4000
-      MONGO_URI: mongodb://admin:password123@mongodb:27017/alu-satu?authSource=admin
-      JWT_SECRET: your-secret-key-change-in-production
-      CORS_ORIGIN: http://localhost:3000,http://localhost
+      # the actual connection string will be taken from env or you can set it here
+      MONGO_URI: ${MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN}
     depends_on:
-      mongodb:
-        condition: service_healthy
-    volumes:
-      - ./server:/app
+      - mongodb
     networks:
       docker_app_net:
         ipv4_address: 192.168.1.51
     restart: unless-stopped
 
-  # Frontend приложение
+  # Frontend (built from repo)
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
     container_name: alu-satu-frontend
-    ports:
-      - "3000:3000"
+    environment:
+      # frontend will call backend API at this address
+      VITE_API_URL: http://192.168.1.51:4000/api
     depends_on:
       - backend
-    environment:
-      VITE_API_URL: http://localhost:4000/api
     networks:
       docker_app_net:
         ipv4_address: 192.168.1.50
@@ -69,4 +62,3 @@ volumes:
 networks:
   docker_app_net:
     external: true
-
