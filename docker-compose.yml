@@ -14,7 +14,8 @@ services:
     volumes:
       - mongodb_data:/data/db
     networks:
-      - alu-satu-network
+      docker_app_net:
+        ipv4_address: 192.168.1.52
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
@@ -41,7 +42,8 @@ services:
     volumes:
       - ./server:/app
     networks:
-      - alu-satu-network
+      docker_app_net:
+        ipv4_address: 192.168.1.51
     restart: unless-stopped
 
   # Frontend приложение
@@ -57,12 +59,14 @@ services:
     environment:
       VITE_API_URL: http://localhost:4000/api
     networks:
-      - alu-satu-network
+      docker_app_net:
+        ipv4_address: 192.168.1.50
     restart: unless-stopped
 
 volumes:
   mongodb_data:
 
 networks:
-  alu-satu-network:
-    driver: bridge
+  docker_app_net:
+    external: true
+
