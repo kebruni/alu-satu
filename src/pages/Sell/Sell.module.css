@@ -1,36 +1,180 @@
 .container {
+  --sell-bg: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+  --sell-text: #fff;
+  --sell-muted: #999;
+  --sell-panel-bg: #1a1a1a;
+  --sell-panel-border: #333;
+  --sell-panel-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --sell-input-bg: #2a2a2a;
+  --sell-input-border: #333;
+  --sell-input-focus-border: #ffffff;
+  --sell-input-focus-bg: #333;
+  --sell-focus-ring: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  --sell-upload-bg: #222;
+  --sell-upload-hover-bg: linear-gradient(135deg, #414345 0%, #232526 100%);
+  --sell-upload-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  --sell-upload-hover-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  --sell-upload-text: #fff;
+  --sell-upload-note: #aaa;
+  --sell-thumb-border: #222;
+  --sell-thumb-remove-bg: #222;
+  --sell-thumb-remove-text: #fff;
+  --sell-thumb-remove-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  --sell-submit-bg: linear-gradient(135deg, #000000 0%, #000000 100%);
+  --sell-submit-hover-bg: linear-gradient(135deg, #000000 0%, #000000 100%);
+  --sell-submit-text: #fff;
+  --sell-submit-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+
   max-width: 600px;
   margin: 0 auto;
   padding: 2rem 1rem;
-  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+  background: var(--sell-bg);
   min-height: 100vh;
+}
+
+[data-theme="light"] .container {
+  --sell-bg: linear-gradient(180deg, #fafbfe 0%, #f2f5fa 100%);
+  --sell-text: #181818;
+  --sell-muted: #667085;
+  --sell-panel-bg: #ffffff;
+  --sell-panel-border: #dfe3ea;
+  --sell-panel-shadow: 0 10px 28px rgba(16, 24, 40, 0.08);
+  --sell-input-bg: #ffffff;
+  --sell-input-border: #d7dee8;
+  --sell-input-focus-border: #b8c4d6;
+  --sell-input-focus-bg: #ffffff;
+  --sell-focus-ring: 0 0 0 3px rgba(15, 23, 42, 0.06);
+  --sell-upload-bg: #f7f9fc;
+  --sell-upload-hover-bg: linear-gradient(180deg, #eef2f7 0%, #e8edf5 100%);
+  --sell-upload-shadow: 0 2px 8px rgba(16,24,40,0.06);
+  --sell-upload-hover-shadow: 0 6px 18px rgba(16,24,40,0.10);
+  --sell-upload-text: #181818;
+  --sell-upload-note: #616b7b;
+  --sell-thumb-border: #d7dee8;
+  --sell-thumb-remove-bg: #ffffff;
+  --sell-thumb-remove-text: #181818;
+  --sell-thumb-remove-shadow: 0 1px 6px rgba(16,24,40,0.14);
+  --sell-submit-bg: linear-gradient(180deg, #ffffff 0%, #eef2f7 100%);
+  --sell-submit-hover-bg: linear-gradient(180deg, #f8fafc 0%, #e8edf5 100%);
+  --sell-submit-text: #111;
+  --sell-submit-shadow: 0 8px 16px rgba(16, 24, 40, 0.12);
+}
+
+.uploadRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.uploadRowHint {
+  color: var(--sell-upload-note);
+  font-size: 13px;
+}
+
+.thumbGrid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.thumbItem {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.thumbImg {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--sell-thumb-border);
+  display: block;
+}
+
+.thumbRemove {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  background: var(--sell-thumb-remove-bg);
+  color: var(--sell-thumb-remove-text);
+  border: 1px solid var(--sell-panel-border);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+  box-shadow: var(--sell-thumb-remove-shadow);
+  padding: 0;
+}
+
+.thumbRemove:hover {
+  transform: scale(1.05);
+}
+
+.uploadBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--sell-upload-bg);
+  color: var(--sell-upload-text);
+  border: 1px solid var(--sell-panel-border);
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--sell-upload-shadow);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.uploadBtn:hover {
+  background: var(--sell-upload-hover-bg);
+  box-shadow: var(--sell-upload-hover-shadow);
+  transform: translateY(-2px);
+}
+
+.uploadBtn svg {
+  width: 24px;
+  height: 24px;
+  color: currentColor;
+  margin-right: 8px;
+}
+
+.uploadBtn span {
+  font-size: 1rem;
+  color: inherit;
 }
 
 .header {
   text-align: center;
   margin-bottom: 2rem;
-  color: white;
+  color: var(--sell-text);
 }
 
 .header h1 {
   font-size: 2rem;
   margin: 0 0 0.5rem 0;
-  color: #fff;
+  color: var(--sell-text);
   font-weight: 700;
 }
 
 .subtitle {
   font-size: 1rem;
-  color: #999;
+  color: var(--sell-muted);
   margin: 0;
 }
 
 .form {
-  background: #1a1a1a;
-  border: 1px solid #333;
+  background: var(--sell-panel-bg);
+  border: 1px solid var(--sell-panel-border);
   border-radius: 8px;
   padding: 2rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--sell-panel-shadow);
 }
 
 .formGroup {
@@ -40,7 +184,7 @@
 .label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #fff;
+  color: var(--sell-text);
   font-weight: 600;
   font-size: 0.95rem;
 }
@@ -54,10 +198,10 @@
 .textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #333;
+  border: 1px solid var(--sell-input-border);
   border-radius: 6px;
-  background: #2a2a2a;
-  color: #fff;
+  background: var(--sell-input-bg);
+  color: var(--sell-text);
   font-size: 1rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
   transition: all 0.2s ease;
@@ -68,9 +212,9 @@
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-  background: #333;
+  border-color: var(--sell-input-focus-border);
+  box-shadow: var(--sell-focus-ring);
+  background: var(--sell-input-focus-bg);
 }
 
 .textarea {
@@ -88,33 +232,105 @@
   padding-right: 2.5rem;
 }
 
+[data-theme="light"] .select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23181818' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+.select option {
+  background: var(--sell-panel-bg);
+  color: var(--sell-text);
+}
+
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
-.preview {
-  margin-top: 1rem;
-  border-radius: 6px;
-  overflow: hidden;
-  max-width: 200px;
-  background: #2a2a2a;
-  border: 1px solid #333;
+.fileInput {
+  display: none;
 }
 
-.preview img {
-  width: 100%;
-  height: auto;
+.uploadArea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--sell-input-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: var(--sell-upload-bg);
+  min-height: 160px;
+}
+
+.uploadArea:hover {
+  border-color: var(--sell-input-focus-border);
+  background: var(--sell-input-bg);
+}
+
+.uploadPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--sell-muted);
+  font-size: 0.95rem;
+}
+
+.uploadIcon {
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--sell-muted);
+}
+
+.uploadHint {
+  font-size: 0.8rem;
+  color: var(--sell-muted);
+}
+
+.previewWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.previewImg {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 6px;
   display: block;
+  object-fit: cover;
+}
+
+.removeBtn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ff4444;
+  color: #fff;
+  border: 2px solid var(--sell-panel-bg);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.removeBtn:hover {
+  background: #e03030;
+  transform: scale(1.1);
 }
 
 .submitBtn {
   width: 100%;
   padding: 1rem;
-  background: linear-gradient(135deg, #000000 0%, #000000 100%);
-  color: white;
-  border: none;
+  background: var(--sell-submit-bg);
+  color: var(--sell-submit-text);
+  border: 1px solid var(--sell-panel-border);
   border-radius: 6px;
   font-size: 1rem;
   font-weight: 700;
@@ -126,9 +342,9 @@
 }
 
 .submitBtn:hover {
-  background: linear-gradient(135deg, #000000 0%, #000000 100%);
+  background: var(--sell-submit-hover-bg);
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--sell-submit-shadow);
 }
 
 .submitBtn:active {
@@ -214,9 +430,14 @@
     gap: 1rem;
   }
 
-  .preview {
+  .uploadArea {
+    min-height: 140px;
+    padding: 1.2rem;
+  }
+
+  .previewImg {
     max-width: 150px;
-    margin-top: 0.8rem;
+    max-height: 150px;
   }
 
   .submitBtn {
@@ -254,7 +475,7 @@
   .form {
     padding: 1rem;
     border-radius: 6px;
-    background: #1a1a1a;
+    background: var(--sell-panel-bg);
   }
 
   .formGroup {
@@ -284,12 +505,14 @@
     gap: 0.8rem;
   }
 
-  .preview {
-    max-width: 120px;
-    margin-top: 0.6rem;
+  .uploadArea {
+    min-height: 120px;
+    padding: 1rem;
   }
 
-  .preview img {
+  .previewImg {
+    max-width: 120px;
+    max-height: 120px;
     border-radius: 4px;
   }
 

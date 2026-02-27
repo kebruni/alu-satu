@@ -1,0 +1,33 @@
+# Этап 1: Сборка
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Копируем package.json и package-lock.json
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm ci
+
+# Копируем исходный код
+COPY . .
+
+# Собираем фронтенд
+RUN npm run build
+
+# Этап 2: Продакшн
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Устанавливаем simple-http-server для раздачи статики
+RUN npm install -g serve
+
+# Копируем собранные файлы из builder этапа
+COPY --from=builder /app/dist ./dist
+
+# Открываем порт
+EXPOSE 3000
+
+# Запускаем приложение
+CMD ["serve", "-s", "dist", "-l", "3000"]

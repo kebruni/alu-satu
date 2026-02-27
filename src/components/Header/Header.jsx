@@ -1,74 +1,55 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./Header.module.css";
 import searchIcon from "../../assets/icons/search.svg";
 import cartIcon from "../../assets/icons/cart.svg";
+import { loginUser, registerUser, logout as apiLogout } from "../../api/auth.api";
+import { useAuth, useCart, useFavorites } from "../../store";
 
-const Header = () => {
+const Header = ({ theme, onToggleTheme }) => {
   const navigate = useNavigate();
-  const [cartCount, setCartCount] = useState(() => {
-    try {
-      const raw = localStorage.getItem("cart") || "[]";
-      const cart = JSON.parse(raw);
-      return (cart || []).reduce((s, item) => s + (item.quantity || 1), 0);
-    } catch {
-      return 0;
-    }
-  });
-  const [favCount, setFavCount] = useState(() => {
-    try {
-      const raw = localStorage.getItem("favorites") || "[]";
-      const favs = JSON.parse(raw);
-      return favs.length || 0;
-    } catch {
-      return 0;
-    }
-  });
+  const headerRef = useRef(null);
+  const lastScroll = useRef(0);
+  const [headerHidden, setHeaderHidden] = useState(false);
+  const { user, avatarSrc, login, logout: authLogout } = useAuth();
+  const { cartCount } = useCart();
+  const { favCount } = useFavorites();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState("login");
-  const [user, setUser] = useState(() => {
-    try {
-      const currentUser = localStorage.getItem("currentUser");
-      return currentUser ? JSON.parse(currentUser) : null;
-    } catch {
-      return null;
-    }
-  });
   const [searchQuery, setSearchQuery] = useState("");
-
-  const updateCartCount = () => {
-    try {
-      const raw = localStorage.getItem("cart") || "[]";
-      const cart = JSON.parse(raw);
-      const count = (cart || []).reduce((s, item) => s + (item.quantity || 1), 0);
-      setCartCount(count);
-    } catch {
-      setCartCount(0);
-    }
-  };
-
-  const updateFavCount = () => {
-    try {
-      const raw = localStorage.getItem("favorites") || "[]";
-      const favs = JSON.parse(raw);
-      setFavCount(favs.length || 0);
-    } catch {
-      setFavCount(0);
-    }
-  };
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    window.addEventListener("cart:changed", updateCartCount);
-    window.addEventListener("favorites:changed", updateFavCount);
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const st = window.scrollY;
+      if (st > 80 && st > lastScroll.current) {
+        setHeaderHidden(true);
+      } else {
+        setHeaderHidden(false);
+      }
+      lastScroll.current = st;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
     return () => {
-      window.removeEventListener("cart:changed", updateCartCount);
-      window.removeEventListener("favorites:changed", updateFavCount);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
+    apiLogout();
+    authLogout();
   };
 
   const handleSearch = (e) => {
@@ -81,9 +62,9 @@ const Header = () => {
 
   return (
     <>
-      <header className={styles.header}>
+      <header className={`${styles.header} ${headerHidden ? styles.headerHidden : ""}`} ref={headerRef}>
         <div className={styles.logo}>
-          <Link to="/" className={styles.logoLink}>Alu-Satu</Link>
+          <Link to="/" className={styles.logoLink}>Alu Satu</Link>
         </div>
 
         <form className={styles.searchForm} onSubmit={handleSearch}>
@@ -91,69 +72,136 @@ const Header = () => {
             type="text"
             placeholder="Поиск товаров"
             className={styles.searchInput}
-            aria-label="Search"
+            aria-label="Поиск товаров"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <button type="submit" className={styles.searchButton} title="Search" aria-label="Search">
-            <img src={searchIcon} alt="Search" />
+          <button type="submit" className={styles.searchButton} title="Поиск" aria-label="Поиск">
+            <img src={searchIcon} alt="Поиск" className={styles.searchIcon} />
           </button>
         </form>
 
         <nav className={styles.navIcons}>
-          <Link to="/sell" className={styles.sellBtn} title="Продать товар" aria-label="Sell">
-            Sell
+          <Link to="/sell" className={styles.sellBtn} title="Продать товар" aria-label="Продать товар">
+            <span>Продать</span>
           </Link>
-          
-          <Link to="/favorites" className={styles.iconBtn} aria-label="Favorites" title="Избранное">
-            ★
+          <Link to="/favorites" className={styles.iconBtn} aria-label="Избранное" title="Избранное">
+            <span className={styles.favIcon}>★</span>
             {favCount > 0 && <span className={styles.favBadge}>{favCount}</span>}
           </Link>
-          
-          <Link to="/cart" className={styles.iconBtn} aria-label="Cart" title="Корзина">
-            <img src={cartIcon} alt="Cart" className={styles.cartImg} />
+          <Link to="/cart" className={styles.iconBtn} aria-label="Корзина" title="Корзина">
+            <img src={cartIcon} alt="Корзина" className={styles.cartImg} />
             {cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}
           </Link>
-          
           {user ? (
             <div className={styles.userMenu}>
-              <span className={styles.username}>{user.username || user.email}</span>
+              <Link to={user.isAdmin ? "/admin" : "/profile"} className={styles.headerAvatar} title={user.isAdmin ? "Админ-панель" : "Профиль"} aria-label="Профиль">
+                {avatarSrc ? (
+                  <img src={avatarSrc} alt="" className={styles.headerAvatarImg} />
+                ) : (
+                  <span className={styles.avatarInitials}>{(user.username || "?").slice(0, 2).toUpperCase()}</span>
+                )}
+              </Link>
+              <Link to="/profile" className={styles.usernameLink} title="Профиль" aria-label="Профиль">
+                <span className={styles.username}>{user.username || user.email}</span>
+              </Link>
               <button onClick={handleLogout} className={styles.logoutBtn}>Выход</button>
+              <button
+                className={styles.themeToggleBtn}
+                onClick={onToggleTheme}
+                aria-label={theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
+                title={theme === "dark" ? "Светлая тема" : "Тёмная тема"}
+                type="button"
+              >
+                {theme === "dark" ? "🌞" : "🌙"}
+              </button>
             </div>
           ) : (
-            <button 
-              onClick={() => {
-                setShowAuthModal(true);
-                setAuthMode("login");
-              }}
-              className={styles.authBtn}
-              aria-label="Login"
-              title="Вход"
-            >
-              Sign up / Log in
-            </button>
+            <>
+              <button 
+                onClick={() => {
+                  setShowAuthModal(true);
+                  setAuthMode("login");
+                }}
+                className={styles.authBtn}
+                aria-label="Вход или регистрация"
+                title="Вход"
+              >
+                Войти / Регистрация
+              </button>
+              <button
+                className={styles.themeToggleBtn}
+                onClick={onToggleTheme}
+                aria-label={theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
+                title={theme === "dark" ? "Светлая тема" : "Тёмная тема"}
+                type="button"
+              >
+                {theme === "dark" ? "🌞" : "🌙"}
+              </button>
+            </>
           )}
         </nav>
+
+        <button
+          className={`${styles.burger} ${menuOpen ? styles.burgerOpen : ""}`}
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label="Меню"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+
+      {menuOpen && <div className={styles.drawerOverlay} onClick={closeMenu} />}
+      <div className={`${styles.drawer} ${menuOpen ? styles.drawerOpen : ""}`}>
+        <div className={styles.drawerContent}>
+          <Link to="/sell" className={styles.drawerLink} onClick={closeMenu}>Продать</Link>
+          <Link to="/favorites" className={styles.drawerLink} onClick={closeMenu}>
+            Избранное {favCount > 0 && <span className={styles.drawerBadge}>{favCount}</span>}
+          </Link>
+          <Link to="/cart" className={styles.drawerLink} onClick={closeMenu}>
+            Корзина {cartCount > 0 && <span className={styles.drawerBadge}>{cartCount}</span>}
+          </Link>
+          <Link to="/catalog" className={styles.drawerLink} onClick={closeMenu}>Каталог</Link>
+          {user ? (
+            <>
+              <Link to={user.isAdmin ? "/admin" : "/profile"} className={styles.drawerLink} onClick={closeMenu}>
+                {user.isAdmin ? "Админ-панель" : "Профиль"}
+              </Link>
+              <button onClick={() => { handleLogout(); closeMenu(); }} className={styles.drawerLogout}>Выход</button>
+            </>
+          ) : (
+            <button onClick={() => { setShowAuthModal(true); setAuthMode("login"); closeMenu(); }} className={styles.drawerAuth}>
+              Войти / Регистрация
+            </button>
+          )}
+          <button type="button" className={styles.drawerThemeBtn} onClick={onToggleTheme}>
+            {theme === "dark" ? "Светлая тема" : "Тёмная тема"}
+          </button>
+        </div>
+      </div>
       </header>
 
       {showAuthModal && (
         <div className={styles.modalOverlay} onClick={() => setShowAuthModal(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <button className={styles.closeBtn} onClick={() => setShowAuthModal(false)}>✕</button>
-            <div className={styles.brand}>Alu-Satu</div>
+            <div className={styles.brand}>Alu Satu</div>
             {authMode === "login" ? (
               <LoginForm 
-                onSuccess={(userData) => {
-                  setUser(userData);
+                onSuccess={(userData, tkn) => {
+                  login(userData, tkn);
                   setShowAuthModal(false);
+                  navigate("/profile");
                 }} 
                 onSwitchMode={() => setAuthMode("register")}
               />
             ) : (
               <RegisterForm 
-                onSuccess={(userData) => {
-                  setUser(userData);
+                onSuccess={(userData, tkn) => {
+                  login(userData, tkn);
                   setShowAuthModal(false);
+                  navigate("/profile");
                 }} 
                 onSwitchMode={() => setAuthMode("login")}
               />
@@ -170,28 +218,28 @@ function LoginForm({ onSuccess, onSwitchMode }) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (!credential || !password) {
       setError("Заполните все поля");
       return;
     }
+    setLoading(true);
+    setError("");
 
     try {
-      const usersRaw = localStorage.getItem("users") || "[]";
-      const users = JSON.parse(usersRaw);
-      const user = users.find(u => (u.email === credential || u.username === credential) && u.password === password);
-      
-      if (user) {
-        localStorage.setItem("currentUser", JSON.stringify({ email: user.email, id: user.id, username: user.username }));
-        onSuccess({ email: user.email, id: user.id, username: user.username });
-        setError("");
-      } else {
-        setError("Неверный email или пароль");
-      }
-    } catch {
-      setError("Ошибка входа");
+
+      const data = await loginUser({ credential, password });
+      const u = data.user;
+      const userData = { email: u.email, id: u._id, username: u.username, isAdmin: u.isAdmin };
+      onSuccess(userData, data.token);
+    } catch (apiErr) {
+      const serverMsg = apiErr?.response?.data?.error;
+      setError(serverMsg || "Ошибка входа. Проверьте backend и MongoDB");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -224,7 +272,7 @@ function LoginForm({ onSuccess, onSwitchMode }) {
         </button>
       </div>
       {error && <p className={styles.authError}>{error}</p>}
-      <button type="submit" className={styles.authSubmitBtn}>Войти</button>
+      <button type="submit" className={styles.authSubmitBtn} disabled={loading}>{loading ? "Вход..." : "Войти"}</button>
       <p className={styles.authSwitch}>
         Нет аккаунта? <button type="button" onClick={onSwitchMode} className={styles.switchLink}>Зарегистрироваться</button>
       </p>
@@ -240,11 +288,9 @@ function RegisterForm({ onSuccess, onSwitchMode }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [codeInput, setCodeInput] = useState("");
-  const [sentCode, setSentCode] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (!username || !email || !password || !confirmPassword) {
       setError("Заполните все поля");
@@ -258,107 +304,22 @@ function RegisterForm({ onSuccess, onSwitchMode }) {
       setError("Пароль должен быть минимум 6 символов");
       return;
     }
-
-    try {
-      const usersRaw = localStorage.getItem("users") || "[]";
-      let users = JSON.parse(usersRaw);
-      
-      if (users.find(u => u.email === email)) {
-        setError("Этот email уже зарегистрирован");
-        return;
-      }
-      if (users.find(u => u.username === username)) {
-        setError("Этот username уже занят");
-        return;
-      }
-
-      const code = String(Math.floor(100000 + Math.random() * 900000));
-      const pending = { id: Date.now(), username, email, password, code, createdAt: Date.now() };
-      localStorage.setItem("pendingRegistration", JSON.stringify(pending));
-      setSentCode(code);
-      console.log("Registration code (simulate SMS):", code);
-      setIsVerifying(true);
-      setError("Код отправлен на указанный номер/почту. Введите код для подтверждения.");
-    } catch {
-      setError("Ошибка регистрации");
-    }
-  };
-
-  const handleVerify = (e) => {
-    e.preventDefault();
-    try {
-      const pendingRaw = localStorage.getItem("pendingRegistration");
-      if (!pendingRaw) {
-        setError("Нет ожидающей регистрации. Сначала заполните форму.");
-        return;
-      }
-      const pending = JSON.parse(pendingRaw);
-      if (String(codeInput).trim() === String(pending.code)) {
-        const usersRaw = localStorage.getItem("users") || "[]";
-        const users = JSON.parse(usersRaw);
-        const newUser = { id: pending.id, username: pending.username, email: pending.email, password: pending.password };
-        users.push(newUser);
-        localStorage.setItem("users", JSON.stringify(users));
-        localStorage.removeItem("pendingRegistration");
-        localStorage.setItem("currentUser", JSON.stringify({ email: newUser.email, id: newUser.id, username: newUser.username }));
-        setError("");
-        onSuccess({ email: newUser.email, id: newUser.id, username: newUser.username });
-      } else {
-        setError("Неверный код подтверждения");
-      }
-    } catch {
-      setError("Ошибка подтверждения");
-    }
-  };
-
-  const handleResend = () => {
-    try {
-      const pendingRaw = localStorage.getItem("pendingRegistration");
-      if (!pendingRaw) return;
-      const pending = JSON.parse(pendingRaw);
-      const code = String(Math.floor(100000 + Math.random() * 900000));
-      pending.code = code;
-      pending.createdAt = Date.now();
-      localStorage.setItem("pendingRegistration", JSON.stringify(pending));
-      setSentCode(code);
-      console.log("Resent registration code (simulate SMS):", code);
-      setError("Код повторно отправлен");
-    } catch {
-      setError("Не удалось отправить код");
-    }
-  };
-
-  const handleCancelVerification = () => {
-    localStorage.removeItem("pendingRegistration");
-    setIsVerifying(false);
-    setCodeInput("");
+    setLoading(true);
     setError("");
-  };
 
-  if (isVerifying) {
-    return (
-      <form onSubmit={handleVerify} className={styles.authForm}>
-        <h2>Подтверждение кода</h2>
-        <p>Мы отправили 6-значный код. Введите его ниже.</p>
-        <input
-          type="text"
-          placeholder="Код из SMS"
-          value={codeInput}
-          onChange={(e) => setCodeInput(e.target.value.replace(/[^0-9]/g, ""))}
-          className={styles.authInput}
-          maxLength={6}
-          autoFocus
-        />
-        {sentCode && <p className={styles.authNote}>(Для разработки код: {sentCode})</p>}
-        {error && <p className={styles.authError}>{error}</p>}
-        <div className={styles.verifyRow}>
-          <button type="submit" className={styles.authSubmitBtn}>Проверить</button>
-          <button type="button" onClick={handleResend} className={styles.resendBtn}>Отправить снова</button>
-          <button type="button" onClick={handleCancelVerification} className={styles.cancelBtn}>Отмена</button>
-        </div>
-      </form>
-    );
-  }
+    try {
+
+      const data = await registerUser({ username, email, password });
+      const u = data.user;
+      const userData = { email: u.email, id: u._id, username: u.username, isAdmin: u.isAdmin };
+      onSuccess(userData, data.token);
+    } catch (apiErr) {
+      const serverMsg = apiErr?.response?.data?.error;
+      setError(serverMsg || "Ошибка регистрации. Проверьте backend и MongoDB");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <form onSubmit={handleRegister} className={styles.authForm}>
@@ -413,7 +374,7 @@ function RegisterForm({ onSuccess, onSwitchMode }) {
         </button>
       </div>
       {error && <p className={styles.authError}>{error}</p>}
-      <button type="submit" className={styles.authSubmitBtn}>Зарегистрироваться</button>
+      <button type="submit" className={styles.authSubmitBtn} disabled={loading}>{loading ? "Регистрация..." : "Зарегистрироваться"}</button>
       <p className={styles.authSwitch}>
         Уже есть аккаунт? <button type="button" onClick={onSwitchMode} className={styles.switchLink}>Войти</button>
       </p>
@@ -422,3 +383,4 @@ function RegisterForm({ onSuccess, onSwitchMode }) {
 }
 
 export default Header;
+
