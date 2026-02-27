@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # MongoDB база данных
   mongodb:
-    image: mongo:7-alpine
+    image: mongo:7
     container_name: alu-satu-mongodb
     ports:
       - "27017:27017"
