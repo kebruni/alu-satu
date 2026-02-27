@@ -29,7 +29,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4000
-      # the actual connection string will be taken from env or you can set it here
+      # the actual connection string will be taken from the environment (.env or Portainer)
       MONGO_URI: ${MONGO_URI}
       JWT_SECRET: ${JWT_SECRET}
       CORS_ORIGIN: ${CORS_ORIGIN}
